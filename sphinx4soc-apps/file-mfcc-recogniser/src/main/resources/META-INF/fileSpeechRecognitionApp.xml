@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<context:property-placeholder location="classpath:application.properties" />
+
+    <!-- initialize beans -->
+    <import resource="classpath:/META-INF/spring/linguistContext.xml" />
+    <import resource="classpath:/META-INF/spring/decoderContext.xml" />
+    <import resource="classpath:/META-INF/spring/evaluatorContext.xml"/>
+    <import resource="classpath:/META-INF/spring/frontendContext.xml" />
+    <import resource="classpath:/META-INF/spring/ioContext.xml" />
+
+    <!-- import camel contexts -->
+	<import resource="classpath:/META-INF/camel/ioRouteContext.xml" />
+	<import resource="classpath:/META-INF/camel/evaluatorRouteContext.xml" />
+	<import resource="classpath:/META-INF/camel/decoderRouteContext.xml" />
+	<import resource="classpath:/META-INF/camel/frontendRouteContext.xml" />
+
+    <camelContext xmlns="http://camel.apache.org/schema/spring">
+        
+        <propertyPlaceholder id="applicationProperties" location="classpath:application.properties" />
+
+        <camel:jmxAgent id="agent" disabled="true" />
+
+        <routeContextRef ref="ioRouteContext"/>
+        <routeContextRef ref="frontendRouteContext"/>
+        <routeContextRef ref="decoderRouteContext"/>
+        <routeContextRef ref="evaluatorRouteContext"/>
+
+        <camel:interceptFrom uri="direct:readStream">
+            <setHeader headerName="timerName"><constant>frontend</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>start</constant></setHeader>
+            <camel:to uri="{{monitor.timer.in}}" />
+            <setHeader headerName="timerName"><constant>overal</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>start</constant></setHeader>
+            <camel:to uri="{{monitor.timer.in}}" />
+        </camel:interceptFrom>
+        
+        <camel:interceptFrom uri="{{frontend.datatype.in}}">
+            <camel:when>
+                <camel:simple>${body} != null and ${body} is "edu.cmu.sphinx.frontend.DataEndSignal"</camel:simple>
+            </camel:when>
+            <setHeader headerName="timerName"><constant>frontend</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>end</constant></setHeader>
+            <camel:to uri="{{monitor.timer.in}}" />
+        </camel:interceptFrom>
+        
+        <camel:interceptFrom uri="{{accuracy.in}}">
+            <setHeader headerName="timerName"><constant>overal</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>end</constant></setHeader>
+            <camel:to uri="{{monitor.timer.in}}" />
+        </camel:interceptFrom>
+        
+        <camel:route id="startApplication" >
+            <camel:from uri="timer://pollNextFile?repeatCount=1"/>
+            <camel:to uri="{{decoder.in.start}}"/>
+            <camel:to uri="{{io.in}}"/>
+        </camel:route>
+            
+    </camelContext>
+</beans>

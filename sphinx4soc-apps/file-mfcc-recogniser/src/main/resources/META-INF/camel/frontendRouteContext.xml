@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring 
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- route beans -->
+    <bean id="dataLoadBalancer" class="soa.speech.recogniser.frontend.process.DecoderDataLoadBalancer">
+        <constructor-arg name="skipframes" value="5"/>
+    </bean>
+    
+	<bean id="wavWriterBean" class="edu.cmu.sphinx.frontend.util.WavWriter"
+		init-method="create">
+		<constructor-arg name="dumpFilePath" value="${frontend.save.wav.path}" />
+		<constructor-arg name="isCompletePath" value="false" />
+		<constructor-arg name="bitsPerSample" value="16" />
+		<constructor-arg name="isSigned" value="true" />
+		<constructor-arg name="captureUtts" value="false" />
+	</bean>
+	
+	<!-- cepstra until dct -->
+	<bean id="cepstraWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+		<constructor-arg name="outputDirectory"  value="${frontend.save.cepstra.path}"/>
+		<constructor-arg name="format" value="ascii"/>
+		<constructor-arg name="extension" value="mfc"/>
+	</bean>
+	
+	<bean id="spectraWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+		<constructor-arg name="outputDirectory"  value="${frontend.save.spectra.path}"/>
+		<constructor-arg name="format" value="binary"/>
+		<constructor-arg name="extension" value="mfc"/>
+	</bean>
+
+	<bean id="deltaWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+		<constructor-arg name="outputDirectory"  value="${frontend.save.delta.path}"/>
+		<constructor-arg name="format" value="ascii"/>
+		<constructor-arg name="extension" value="mfc"/>
+	</bean>
+	
+	<camel:routeContext id="frontendRouteContext" xmlns="http://camel.apache.org/schema/spring">
+
+		<camel:route id="frontend-input">
+			<camel:from uri="{{frontend.in}}" />
+<!-- 			<camel:bean ref="wavWriterBean" method="writeData(${body}, ${header.CamelFileName})" /> -->
+			<camel:bean ref="preemphasizerBean" method="getData" />
+			<camel:to uri="windower://raisedCosine?windowSizeInMs=25.625&amp;windowShiftInMs=12.00&amp;alpha=0.46" />
+		</camel:route>
+
+		<camel:route id="frontend-window">
+			<camel:from uri="windower:raisedCosine?windowSizeInMs=25.625&amp;windowShiftInMs=12.00&amp;alpha=0.46" />
+			<camel:bean ref="discreteFourierTransformBean" method="getData" />
+			<camel:bean ref="melFrequencyFilterBankBean" method="getData(${body})" />
+			<camel:bean ref="discreteCosineTransformBean" method="getData" />
+			<camel:bean ref="liveCMNBean" method="getData" />
+			<camel:to uri="deltafeature:delta?window=3" />
+		</camel:route>
+
+		<camel:route id="frontendDelta" autoStartup="true">
+			<camel:from uri="deltafeature:delta?window=3" />
+			<to uri="{{frontend.datatype.in}}" />
+		</camel:route>
+
+		<route id="datatype" autoStartup="true">
+			<from uri="{{frontend.datatype.in}}" />
+			<loadBalance ref="dataLoadBalancer">
+				<to uri="{{frontend.datatype.block}}" />
+				<to uri="{{decoder.in}}" />
+			</loadBalance>
+		</route>
+		
+		<camel:route id="block" autoStartup="true">
+			<camel:from uri="{{frontend.datatype.block}}" />
+			<camel:stop />
+		</camel:route>
+
+	</camel:routeContext>
+
+</beans>

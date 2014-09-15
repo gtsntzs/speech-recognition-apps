@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring 
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+    <context:property-placeholder location="classpath:application.properties" />
+
+    <import resource="classpath:/META-INF/spring/ioContext.xml" />
+    <import resource="classpath:/META-INF/spring/frontendContext.xml" />
+	
+    <import resource="classpath:/META-INF/spring/ioRouteContext.xml" />
+    <import resource="classpath:/META-INF/spring/mfccRouteContext.xml" />
+    <import resource="classpath:/META-INF/spring/evaluatorRouteContext.xml" />
+    
+    <bean id="shutdown" class="org.apache.camel.impl.DefaultShutdownStrategy">  
+        <property name="timeout" value="3"/>
+    </bean>  
+    
+	<camel:camelContext id="mfccCamelContext" xmlns="http://camel.apache.org/schema/spring" shutdownRoute="Defer">
+
+		<propertyPlaceholder id="frontendProperties" location="classpath:application.properties" />
+
+		<camel:jmxAgent id="agent" disabled="true"/>
+
+        <routeContextRef ref="inputRouteContext"/>
+        <routeContextRef ref="frontendRouteContext"/>
+        <routeContextRef ref="evaluatorRouteContext"/>
+
+        <camel:interceptFrom uri="direct:read">
+            <setHeader headerName="timerName"><constant>frontend</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>start</constant></setHeader>
+            <camel:to uri="{{io.monitor.endpoint}}" />
+        </camel:interceptFrom>
+
+        <camel:interceptFrom uri="{{datatype.in.endpoint}}">
+            <camel:when>
+                <camel:simple>${body} != null and ${body} is "edu.cmu.sphinx.frontend.DataEndSignal"</camel:simple>
+            </camel:when>
+            <setHeader headerName="timerName"><constant>frontend</constant></setHeader>
+            <setHeader headerName="timerSignal"><constant>end</constant></setHeader>
+            <camel:to uri="{{frontend.monitor.endpoint}}" />
+        </camel:interceptFrom>
+
+        <camel:route id="startApplication" >
+            <camel:from uri="timer://pollNextFile?repeatCount=1"/>
+            <camel:to uri="{{io.in.nextfile}}"/>
+        </camel:route>
+
+	</camel:camelContext>
+
+</beans>

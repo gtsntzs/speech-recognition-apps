@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+			http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	<bean id="prunerBean" class="edu.cmu.sphinx.decoder.pruner.SimplePruner" init-method="allocateSoA" />
+
+	<bean id="simpleAcousticScorerBean" class="edu.cmu.sphinx.decoder.scorer.SimpleAcousticScorer">
+		<constructor-arg name="frontEnd">
+			<null />
+		</constructor-arg>
+		<constructor-arg name="scoreNormalizer">
+			<null />
+		</constructor-arg>
+	</bean>
+
+	<bean id="acousticScorerBean" init-method="allocateSoA" class="edu.cmu.sphinx.decoder.scorer.ThreadedAcousticScorer">
+		<constructor-arg name="frontEnd" type="edu.cmu.sphinx.frontend.BaseDataProcessor">
+			<null />
+		</constructor-arg>
+		<constructor-arg name="scoreNormalizer" type="edu.cmu.sphinx.decoder.scorer.ScoreNormalizer">
+			<null />
+		</constructor-arg>
+		<constructor-arg name="minScoreablesPerThread" value="10" />
+		<constructor-arg name="cpuRelative" value="true" />
+		<constructor-arg name="numThreads" value="2" />
+		<constructor-arg name="threadPriority" value="5" />
+	</bean>
+
+    <bean id="activeListFactoryBean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+        <constructor-arg name="absoluteBeamWidth" value="-1" />
+        <constructor-arg name="relativeBeamWidth" value="1E-88" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+    </bean>
+
+
+	<bean id="simpleBreadthFirstSearchManagerBean" class="edu.cmu.sphinx.decoder.search.SimpleBreadthFirstSearchManager" init-method="allocate">
+		<constructor-arg name="logMath" ref="logMathBean" />
+		<constructor-arg name="linguist" ref="linguistBean" />
+		<constructor-arg name="pruner" ref="prunerBean" />
+		<constructor-arg name="scorer" ref="acousticScorerBean" />
+		<constructor-arg name="activeListFactory" ref="activeListFactoryBean" />
+		<constructor-arg name="showTokenCount" value="false" />
+		<constructor-arg name="relativeWordBeamWidth" value="0.0" />
+		<constructor-arg name="growSkipInterval" value="0" />
+		<constructor-arg name="wantEntryPruning" value="false" />
+	</bean>
+
+
+	<bean id="unitExitActiveListBean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="2000" />
+		<constructor-arg name="relativeBeamWidth" value="1E-65" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<bean id="wordActiveListFactory1Bean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="25" />
+		<constructor-arg name="relativeBeamWidth" value="1E-48" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<bean id="wordActiveListFactory2Bean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="25" />
+		<constructor-arg name="relativeBeamWidth" value="1E-48" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<bean id="standarActiveListFactory2Bean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="2000" />
+		<constructor-arg name="relativeBeamWidth" value="1E-20" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<bean id="standarActiveListFactory3Bean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="2000" />
+		<constructor-arg name="relativeBeamWidth" value="1E-20" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<bean id="standarActiveListFactory4Bean" class="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<constructor-arg name="absoluteBeamWidth" value="2000" />
+		<constructor-arg name="relativeBeamWidth" value="1E-20" />
+		<constructor-arg name="logMath" ref="logMathBean" />
+	</bean>
+
+	<util:list id="activeListFactories" value-type="edu.cmu.sphinx.decoder.search.PartitionActiveListFactory">
+		<ref bean="unitExitActiveListBean" />
+		<ref bean="wordActiveListFactory1Bean" />
+		<ref bean="wordActiveListFactory2Bean" />
+		<ref bean="standarActiveListFactory2Bean" />
+		<ref bean="standarActiveListFactory3Bean" />
+		<ref bean="standarActiveListFactory4Bean" />
+	</util:list>
+
+	<bean id="activeListManagerBean" class="edu.cmu.sphinx.decoder.search.SimpleActiveListManager">
+		<constructor-arg name="activeListFactories" ref="activeListFactories" />
+		<constructor-arg name="checkPriorLists" value="false" />
+	</bean>
+
+	<bean id="searchManagerBean" init-method="allocate" class="edu.cmu.sphinx.decoder.search.WordPruningBreadthFirstSearchManagerSOC" >                    
+		<constructor-arg name="logMath" ref="logMathBean" />
+		<constructor-arg name="linguist" ref="linguistBean" />
+		<constructor-arg name="pruner" ref="prunerBean" />
+		<constructor-arg name="scorer" ref="acousticScorerBean" />
+		<constructor-arg name="activeListManager" ref="activeListManagerBean" />
+		<constructor-arg name="showTokenCount" value="false" />
+		<constructor-arg name="relativeWordBeamWidth" value="1E-64" />
+		<constructor-arg name="growSkipInterval" value="8" />
+		<constructor-arg name="checkStateOrder" value="false" />
+		<constructor-arg name="buildWordLattice" value="false" />
+		<constructor-arg name="maxLatticeEdges" value="100" />
+		<constructor-arg name="acousticLookaheadFrames" value="1.8f" />
+		<constructor-arg name="keepAllTokens" value="false" />
+	</bean>
+
+	<util:list id="resultListenersList">
+	</util:list>
+
+	<bean id="decoderBean" class="edu.cmu.sphinx.decoder.Decoder">
+		<constructor-arg name="searchManager" ref="searchManagerBean" />
+		<constructor-arg name="fireNonFinalResults" value="false" />
+		<constructor-arg name="autoAllocate" value="false" />
+		<constructor-arg name="resultListeners" ref="resultListenersList" />
+		<constructor-arg name="featureBlockSize" value="100000" />
+	</bean>
+
+	<util:list id="monitorList" value-type="edu.cmu.sphinx.instrumentation.Monitor" list-class="java.util.LinkedList"> 
+	</util:list>
+
+	<bean id="recognizerBean" class="edu.cmu.sphinx.recognizer.Recognizer">
+		<property name="decoder" ref="decoderBean" />
+		<property name="monitors" ref="monitorList" />
+	</bean>
+
+</beans>

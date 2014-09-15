@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="calculateAggregationStr" class="soa.speech.recogniser.decoder.process.CalculateAggregationStr" />
+
+    <bean id="exchangeEnrich" class="soa.speech.recogniser.decoder.process.DecoderExchangeEnrich" >
+        <constructor-arg name="searchManager" ref="searchManagerBean" />
+    </bean>
+
+    <camel:routeContext id="decoderRouteContext" xmlns="http://camel.apache.org/schema/spring">
+
+        <camel:route id="startDecoder">
+            <camel:from uri="{{decoder.in.start}}"/>
+            <camel:bean ref="languageModelBean" method="start" />
+            <camel:bean ref="linguistBean" method="startRecognition" />
+            <camel:bean ref="linguistBean" method="getSearchGraph" />
+            <camel:bean ref="searchManagerBean" method="startRecognitionSOC" />
+            <camel:process ref="exchangeEnrich" />
+            <camel:to uri="{{decoder.in}}" />
+        </camel:route>
+
+        <camel:route id="restartDecoder">
+            <camel:from uri="seda:restart" />
+            <camel:bean ref="languageModelBean" method="stop" />
+            <camel:bean ref="linguistBean" method="stopRecognition" />
+            <camel:bean ref="searchManagerBean" method="stopRecognitionSOC" />
+            <camel:bean ref="linguistBean" method="getSearchGraph" />
+            <camel:bean ref="searchManagerBean" method="startRecognitionSOC" />
+            <camel:process ref="exchangeEnrich" />
+            <camel:to uri="{{decoder.in}}" />
+        </camel:route>
+
+        <camel:route id="decode">
+            <camel:from uri="{{decoder.in}}" />
+            <camel:aggregate strategyRef="calculateAggregationStr" strategyMethodName="aggregate" completionSize="2">
+                <correlationExpression>
+                    <simple>header.id</simple>
+                </correlationExpression>
+                <camel:to uri="direct:calculateBest" />
+            </camel:aggregate>
+        </camel:route>
+
+        <camel:route>
+            <camel:from uri="direct:calculateBest"/>
+            <camel:bean ref="acousticScorerBean" method="calculateScoresSoA(${body}, ${header.data})" />
+            <camel:bean ref="searchManagerBean" method="recognizeSoA" />
+            <camel:choice>
+                <camel:when>
+                    <camel:simple>${body} == 'true'</camel:simple>
+                    <camel:process ref="exchangeEnrich" />
+                    <to uri="{{decoder.in}}" />
+                </camel:when>
+                <camel:when>
+                    <camel:simple>${body} == 'false'</camel:simple>
+                    <camel:bean ref="searchManagerBean" method="createResult" />
+                    <camel:to uri="{{accuracy.in}}" />
+                    <camel:to uri="seda:restart" />
+                </camel:when>
+            </camel:choice>
+        </camel:route>
+    
+    </camel:routeContext>
+
+</beans>

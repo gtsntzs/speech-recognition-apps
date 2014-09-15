@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   		http://www.springframework.org/schema/context
+	   		http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	   		http://www.springframework.org/schema/util 
+	   		http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="streamDataSourceBean" class="edu.cmu.sphinx.frontend.util.StreamDataSource" init-method="initialize">
+		<constructor-arg name="sampleRate" value="16000" />
+		<constructor-arg name="bytesPerRead" value="3200" />
+		<constructor-arg name="bitsPerSample" value="16" />
+		<constructor-arg name="bigEndian" value="true" />
+		<constructor-arg name="signedData" value="true" />
+	</bean>
+
+	<bean id="audioFileDataSourceBean" class="edu.cmu.sphinx.frontend.util.AudioFileDataSource">
+		<property name="bytesPerRead" value="3200" />
+	</bean>
+
+	<bean id="dataDumperBean" class="edu.cmu.sphinx.frontend.util.DataDumper">
+		<constructor-arg name="enable" value="true" />
+		<constructor-arg name="format" value="0.00000E00;-0.00000E00" />
+		<constructor-arg name="outputSignals" value="true" />
+	</bean>
+
+	<bean id="streamCepstrumSourceBean" class="edu.cmu.sphinx.frontend.util.StreamCepstrumSource">
+		<constructor-arg name="cepstrumLength" value="13" />
+		<constructor-arg name="binary" value="true" />
+		<constructor-arg name="frameShiftMs" value="10f" />
+		<constructor-arg name="frameSizeMs" value="25.625" />
+		<constructor-arg name="sampleRate" value="1600" />
+	</bean>
+
+</beans>

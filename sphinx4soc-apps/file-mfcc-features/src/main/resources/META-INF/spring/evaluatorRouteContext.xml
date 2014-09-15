@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="processingTimeReviewer" class="soa.speech.recogniser.evaluator.monitor.ProcessingTimeReviewer" />
+
+    <!-- <bean id="timerPlotProcessor" class="soa.speech.recogniser.evaluator.process.TimerPlotProcessor"> -->
+    <!-- <constructor-arg name="processingTimeReviewer" ref="processingTimeReviewer" /> -->
+    <!-- </bean> -->
+
+    <routeContext id="evaluatorRouteContext" xmlns="http://camel.apache.org/schema/spring">
+        
+        <route id="timerMonitor">
+            <from uri="{{monitor.time.in.endpoint}}" />
+            <when>
+                <simple>${header.timerSignal} == 'start'</simple>
+                <bean ref="processingTimeReviewer" method="startProcessing(${header.CamelFileName}, ${header.timerName}, ${header.CamelFileLength})" />
+            </when>
+            <when>
+                <simple>${header.timerSignal} == 'end'</simple>
+                <bean ref="processingTimeReviewer" method="endProcessing(${header.CamelFileName}, ${header.timerName})" />
+            </when>
+        </route>
+</routeContext>
+
+</beans>

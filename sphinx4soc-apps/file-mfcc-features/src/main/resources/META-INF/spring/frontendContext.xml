@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   		http://www.springframework.org/schema/context
+	   		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="speechMarkerSOABean" class="edu.cmu.sphinx.frontend.endpoint.SpeechMarkerSOA" >
+		<constructor-arg name="startSpeechTime" value="200"/>
+		<constructor-arg name="endSilenceTime" value="500"/>
+		<constructor-arg name="speechLeader" value="50"/>
+		<constructor-arg name="speechLeaderFrames" value="30"/>
+		<constructor-arg name="speechTrailer" value="50"/>
+		<constructor-arg name="endSilenceDecay" value="15.0"/>
+	</bean>
+	
+	<bean id="nonSpeechDataFilterBean" class="edu.cmu.sphinx.frontend.endpoint.NonSpeechDataFilter " />
+
+	<bean id="preemphasizerBean" class="edu.cmu.sphinx.frontend.filter.Preemphasizer">
+		<constructor-arg name="preemphasisFactor" value="0.97"/>
+	</bean>
+
+	<bean id="raisedCosineWindowerBean" class="edu.cmu.sphinx.frontend.window.RaisedCosineWindower" >
+		<constructor-arg name="alpha" value="0.46d"/>
+		<constructor-arg name="windowSizeInMs" value="25.625f"/>
+		<constructor-arg name="windowShiftInMs" value="10.0f"/>
+	</bean>
+
+	<bean id="discreteFourierTransformBean" class="edu.cmu.sphinx.frontend.transform.DiscreteFourierTransform" >
+		<constructor-arg name="numberFftPoints" value="-1"/>
+		<constructor-arg name="invert" value="false"/>
+	</bean>
+
+	<bean id="melFrequencyFilterBankBean" class="edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank" >
+		<constructor-arg name="minFreq" value="200"/>
+		<constructor-arg name="maxFreq" value="3500"/>
+		<constructor-arg name="numberFilters" value="31"/>
+	</bean>
+
+	<bean id="discreteCosineTransformBean" class="edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform" >
+		<constructor-arg name="cepstrumSize" value="13"/>
+		<constructor-arg name="numberMelFilters" value="40"/>
+	</bean>
+
+	<bean id="liveCMNBean" class="edu.cmu.sphinx.frontend.feature.LiveCMN" >
+		<constructor-arg name="initialMean" value="12.0"/>
+		<constructor-arg name="cmnWindow" value="100"/>
+		<constructor-arg name="cmnShiftWindow" value="160"/>
+	</bean>
+
+	<bean id="featureDumperBean" class="edu.cmu.sphinx.frontend.util.DataDumper">
+		<constructor-arg name="enable" value="true" />
+		<constructor-arg name="format" value="0.00000E00;-0.00000E00" />
+		<constructor-arg name="outputSignals" value="true" />
+	</bean>
+    
+    <bean id="frontendDataLoadBalancer" class="soa.speech.recogniser.frontend.process.FrontendDataLoadBalancer" />
+</beans>

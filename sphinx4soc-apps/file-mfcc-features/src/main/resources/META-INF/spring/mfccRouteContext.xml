@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring 
+       http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<routeContext id="frontendRouteContext" xmlns="http://camel.apache.org/schema/spring">
+    
+    <route id="frontend-input">
+        <from uri="{{frontend.in.endpoint}}"/>
+        <bean ref="wavWriterBean" method="writeData(${body}, ${header.CamelFileName})"/>
+        <bean ref="preemphasizerBean" method="getData"/>
+        <to uri="windower:raisedCosine"/>
+    </route>
+    
+    <route id="frontend-window">
+        <from uri="windower:raisedCosine"/>
+        <bean ref="discreteFourierTransformBean" method="getData"/>
+        <bean ref="melFrequencyFilterBankBean" method="getData(${body})"/>
+        <bean ref="discreteCosineTransformBean" method="getData"/>
+        <bean ref="liveCMNBean" method="getData"/>
+        <to uri="deltafeature:delta"/>
+    </route>
+    
+    <route id="frontendDelta">
+        <from uri="deltafeature:delta"/>
+        <bean ref="deltaWriterBean" method="storeFeature(${body}, ${header.CamelFileName})"/>
+        <bean ref="featureDumperBean" method="dumpData"/>
+        <to uri="{{datatype.in.endpoint}}"/>
+    </route>
+    
+    <route id="datatype">
+        <from uri="{{datatype.in.endpoint}}"/>
+        <loadBalance ref="frontendDataLoadBalancer">
+            <to uri="{{datatype.lb.block.endpoint}}"/>
+            <to uri="{{datatype.lb.out.endpoint}}"/>
+        </loadBalance>
+    </route>
+    
+    <route id="block">
+        <from uri="{{datatype.lb.block.endpoint}}"/>
+        <stop/>
+    </route>
+</routeContext>
+
+</beans>

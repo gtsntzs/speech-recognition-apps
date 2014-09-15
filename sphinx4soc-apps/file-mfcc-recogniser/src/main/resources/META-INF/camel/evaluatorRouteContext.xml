@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="processingTimeReviewer" class="soa.speech.recogniser.evaluator.monitor.ProcessingTimeReviewer"></bean>
+
+    <bean id="wsjFileTranscription" init-method="load" class="soa.speech.recogniser.evaluator.transcript.WsjFileTranscription" > 
+        <constructor-arg name="transcriptionFilePath" value="${wsj.transcription.path}"/>
+    </bean>
+
+    <bean id="resultTranscriptionEnrich" class="soa.speech.recogniser.evaluator.process.ResultTranscriptionEnrich"/>
+
+    <camel:routeContext id="evaluatorRouteContext" xmlns="http://camel.apache.org/schema/spring">
+
+        <camel:route id="timerMonitor">
+            <camel:from uri="{{monitor.timer.in}}" />
+            <camel:when>
+                <camel:simple>${header.timerSignal} == 'start'</camel:simple>
+                <camel:bean ref="processingTimeReviewer" method="startProcessing(${header.CamelFileName}, ${header.timerName}, ${header.CamelFileLength})" />
+            </camel:when>
+            <camel:when>
+                <camel:simple>${header.timerSignal} == 'end'</camel:simple>
+                <camel:bean ref="processingTimeReviewer" method="endProcessing(${header.CamelFileName}, ${header.timerName})" />
+            </camel:when>
+        </camel:route>
+
+        <camel:route id="accuracyMonitor">
+            <camel:from uri="{{accuracy.in}}" />
+            <camel:to uri="{{io.in}}"/>
+            <setHeader headerName="transcription">
+                <simple>${bean:wsjFileTranscription?method=getTranscription(${header.CamelFileName})}</simple>
+            </setHeader>
+            <camel:log message="transcript: ${header.transcription}"/>
+            <camel:process ref="resultTranscriptionEnrich"/>
+            <camel:bean ref="bestPathAccuracyTrackerBean" method="getAligner" />
+            <camel:log message="accuracy: ${body.getTotalWordAccuracy} "/>
+        </camel:route>
+        
+    </camel:routeContext>
+
+</beans>

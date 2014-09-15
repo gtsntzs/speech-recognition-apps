@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<bean id="memoryTrackerBean" class="edu.cmu.sphinx.instrumentation.MemoryTracker">
+		<constructor-arg name="recognizer" ref="recognizerBean" />
+		<constructor-arg name="showSummary" value="false" />
+		<constructor-arg name="showDetails" value="false" />
+	</bean>
+
+	<bean id="bestPathAccuracyTrackerBean" class="edu.cmu.sphinx.instrumentation.BestPathAccuracyTracker">
+		<constructor-arg name="recognizer" ref="recognizerBean" />
+		<constructor-arg name="showSummary" value="true" />
+		<constructor-arg name="showDetails" value="true" />
+		<constructor-arg name="showResults" value="true" />
+		<constructor-arg name="showAlignedResults" value="true" />
+		<constructor-arg name="showRawResults" value="false" />
+		<constructor-arg name="showFullPath" value="false" />
+	</bean>
+
+</beans>
