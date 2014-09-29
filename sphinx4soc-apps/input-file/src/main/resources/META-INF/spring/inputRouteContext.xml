@@ -19,18 +19,24 @@
         <constructor-arg name="streamDataSourceBean" ref="streamDataSourceBean" />
     </bean>
 
-    <routeContext id="inputRouteContext" xmlns="http://camel.apache.org/schema/spring">
-        <route id="streamFile" shutdownRoute="Defer" >
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <property name="brokerURL" value="tcp://localhost:61616" />
+        <property name="userName" value="admin" />
+        <property name="password" value="admin" />
+    </bean>
+
+    <routeContext xmlns="http://camel.apache.org/schema/spring">
+        <route shutdownRoute="Defer" customId="true" id="prepareFile">
             <from uri="{{io.in.nextfile}}" />
             <pollEnrich uri="{{io.audio.file.input}}" />
             <convertBodyTo type="java.io.InputStream" />
             <process ref="streamRawAudioProcessor" />
             <to uri="direct:read" />
         </route>
-        <route>
-            <!-- <description>We split the route in order to take the advantage of the file component configuration</description> -->
+        <route customId="true" id="streamFile">
             <from uri="direct:read" />
             <dynamicRouter>
+                <description>&lt;description&gt;We split the route in order to take the advantage of the file component configuration&lt;/description&gt;</description>
                 <method ref="streamRawAudioDynamicRouter" method="route"></method>
             </dynamicRouter>
             <stop />

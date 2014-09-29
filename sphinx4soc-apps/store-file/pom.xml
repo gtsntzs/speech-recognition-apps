@@ -14,7 +14,7 @@
 
   <name>Sphinx4soc store-file App</name>
 
-  <description>description</description>
+  <description>Application capable of storing information like wav, cepsta, spectra and/or deltas.</description>
 
   <licenses>
     <license>

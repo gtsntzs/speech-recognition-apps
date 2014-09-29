@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>sphinx4soc-apps</artifactId>
@@ -32,12 +30,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.7</java.version>
         <applicationContextUri>META-INF/*.xml;META-INF/spring/*.xml</applicationContextUri>
-
+        
         <!-- dependencies properties -->
         <sphinx4soc.version>0.33-SNAPSHOT</sphinx4soc.version>
-
         <spring.version>4.0.6.RELEASE</spring.version>
         <camel.version>2.13.2</camel.version>
+        <activemq-version>5.10.0</activemq-version>
         <felix.version>2.0.4</felix.version>
         <!-- logging properties -->
         <log4j.version>1.2.17</log4j.version>
@@ -97,7 +95,12 @@
             <artifactId>camel-disruptor</artifactId>
             <version>${camel.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-camel</artifactId>
+            <version>${activemq-version}</version>
+            <scope>runtime</scope>
+        </dependency>
         <!-- spring -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -148,7 +151,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
