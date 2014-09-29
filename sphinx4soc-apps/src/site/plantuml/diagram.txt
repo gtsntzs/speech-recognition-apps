@@ -1,0 +1,7 @@
+@startuml diagram.png
+  skinparam componentStyle uml2
+  skinparam monochrome true
+
+  Bob -> Alice : hello
+  Alice --> Bob : OK
+@enduml

@@ -55,7 +55,5 @@
             <camel:from uri="timer://pollNextFile?repeatCount=1"/>
             <camel:to uri="{{io.in.nextfile}}"/>
         </camel:route>
-
 	</camel:camelContext>
-
 </beans>

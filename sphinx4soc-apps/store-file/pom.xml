@@ -1,39 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
-    <groupId>soa.speech.recogniser</groupId>
     <artifactId>sphinx4soc-apps</artifactId>
+    <groupId>soa.speech.recogniser</groupId>
     <version>0.1-SNAPSHOT</version>
   </parent>
 
-  <groupId>soa.speech.recogniser.apps</groupId>
-  <artifactId>file-mfcc-recogniser</artifactId>
-  <packaging>jar</packaging>
+  <groupId>soa.speech.recogniser.app</groupId>
+  <artifactId>store-file</artifactId>
+  <packaging>bundle</packaging>
   <version>0.1-SNAPSHOT</version>
 
-  <name>File :: Recogniser</name>
-  <description>
-    Full speech recogniser using files as input.
-  </description>
+  <name>Sphinx4soc store-file App</name>
 
-  <!-- project info -->
-  <inceptionYear>2011</inceptionYear>
-  <organization>
-    <name>gtsntzs</name>
-    <url>https://github.com/gtsntzs</url>
-  </organization>
-  <developers>
-    <developer>
-      <id>gtsntzs</id>
-      <name>Georgios Tsontzos</name>
-      <url>https://github.com/gtsntzs</url>
-    </developer>
-  </developers>
+  <description>description</description>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -43,21 +25,21 @@
   </licenses>
 
   <properties>
-    <!-- testing properties -->
+    <!-- project properties -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.7</java.version>
-    <sphinx4soc.version>${project.version}</sphinx4soc.version>
-    <!-- testing properties -->
+    <applicationContextUri>META-INF/*.xml;META-INF/spring/*.xml</applicationContextUri>
+
+    <!-- dependencies properties -->
+    <sphinx4soc.version>0.33-SNAPSHOT</sphinx4soc.version>
     <fabric8.maven.version>1.1.0.CR5</fabric8.maven.version>
-    <spring.version>3.2.8.RELEASE</spring.version>
-    <camel.version>2.12.0</camel.version>
+    <spring.version>4.0.6.RELEASE</spring.version>
+    <camel.version>2.13.2</camel.version>
     <felix.version>2.0.4</felix.version>
-    <commons-io.version>2.4</commons-io.version>
-    <joda-time.version>2.3</joda-time.version>
     <!-- logging properties -->
     <log4j.version>1.2.17</log4j.version>
-    <slf4j.version>1.7.6</slf4j.version>
+    <slf4j.version>1.7.7</slf4j.version>
     <!-- testing properties -->
     <mockito.version>1.9.5</mockito.version>
     <testng.version>6.8.8</testng.version>
@@ -67,16 +49,6 @@
     <maven-bundle-plugin.version>2.3.7</maven-bundle-plugin.version>
   </properties>
 
-  <!-- site generation -->
-  <url>${site.url}/${project.artifactId}</url>
-  <distributionManagement>
-    <site>
-      <name>Deployment through GitHub's site deployment plugin</name>
-      <id>${site.deploy.id}</id>
-      <url>${site.deploy.url}${project.artifactId}</url>
-    </site>
-  </distributionManagement>
-
   <dependencies>
     <!-- speech -->
     <dependency>
@@ -85,12 +57,12 @@
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
+      <groupId>soa.speech.recogniser.components</groupId>
       <artifactId>sphinx4soc-deltafeature</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
+      <groupId>soa.speech.recogniser.components</groupId>
       <artifactId>sphinx4soc-windower</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
@@ -100,8 +72,8 @@
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
-      <artifactId>sphinx4-models</artifactId>
+      <groupId>soa.speech.recogniser.models</groupId>
+      <artifactId>model-default</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
 
@@ -206,7 +178,7 @@
         <artifactId>camel-maven-plugin</artifactId>
         <version>${camel.version}</version>
         <configuration>
-          <applicationContextUri>META-INF/mfccFileApp.xml;META-INF/spring/*.xml</applicationContextUri>
+          <applicationContextUri>${applicationContextUri}</applicationContextUri>
         </configuration>
       </plugin>
 
@@ -215,8 +187,6 @@
         <artifactId>fabric8-maven-plugin</artifactId>
         <version>${fabric8.maven.version}</version>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

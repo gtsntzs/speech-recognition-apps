@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://camel.apache.org/schema/spring 
+       http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="streamRawAudioDynamicRouter" class="soa.speech.recogniser.io.process.StreamRawAudioDynamicRouter">
+        <constructor-arg name="sequence" value="${io.out.endpoint},bean:streamDataSourceBean?method=getData" />
+    </bean>
+
+    <bean id="streamRawAudioProcessor" class="soa.speech.recogniser.io.process.StreamRawAudioProcessor">
+        <constructor-arg name="streamDataSourceBean" ref="streamDataSourceBean" />
+    </bean>
+
+    <routeContext id="inputRouteContext" xmlns="http://camel.apache.org/schema/spring">
+        <route id="streamFile" shutdownRoute="Defer" >
+            <from uri="{{io.in.nextfile}}" />
+            <pollEnrich uri="{{io.audio.file.input}}" />
+            <convertBodyTo type="java.io.InputStream" />
+            <process ref="streamRawAudioProcessor" />
+            <to uri="direct:read" />
+        </route>
+        <route>
+            <!-- <description>We split the route in order to take the advantage of the file component configuration</description> -->
+            <from uri="direct:read" />
+            <dynamicRouter>
+                <method ref="streamRawAudioDynamicRouter" method="route"></method>
+            </dynamicRouter>
+            <stop />
+        </route>
+    </routeContext>
+</beans>
