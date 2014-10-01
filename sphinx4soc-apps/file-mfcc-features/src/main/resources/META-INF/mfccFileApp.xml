@@ -22,19 +22,13 @@
     <import resource="classpath:/META-INF/spring/mfccRouteContext.xml" />
     <import resource="classpath:/META-INF/spring/evaluatorRouteContext.xml" />
     
-    <bean id="shutdown" class="org.apache.camel.impl.DefaultShutdownStrategy">  
-        <property name="timeout" value="3"/>
-    </bean>  
+
     
 	<camel:camelContext id="mfccCamelContext" xmlns="http://camel.apache.org/schema/spring" shutdownRoute="Defer">
 
 		<propertyPlaceholder id="frontendProperties" location="classpath:application.properties" />
 
 		<camel:jmxAgent id="agent" disabled="true"/>
-
-        <routeContextRef ref="inputRouteContext"/>
-        <routeContextRef ref="frontendRouteContext"/>
-        <routeContextRef ref="evaluatorRouteContext"/>
 
         <camel:interceptFrom uri="direct:read">
             <setHeader headerName="timerName"><constant>frontend</constant></setHeader>

@@ -16,7 +16,7 @@
     <module>file-mfcc-features</module>
     <module>file-mfcc-recogniser</module>
     <module>input-file</module>
-    <module>store-file</module>
+    <module>feature-mfcc</module>
   </modules>
 
   <!-- project info -->
