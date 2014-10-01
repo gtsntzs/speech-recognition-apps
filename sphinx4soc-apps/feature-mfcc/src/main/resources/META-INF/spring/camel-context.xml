@@ -1,28 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:camel="http://camel.apache.org/schema/spring"
-       xsi:schemaLocation="
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+    xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-  <camel:camelContext xmlns="http://camel.apache.org/schema/spring">
+    <!--     Persist beans   -->
+    <bean id="wavWriterBean" class="edu.cmu.sphinx.frontend.util.WavWriter"
+        init-method="create">
+        <constructor-arg name="dumpFilePath" value="${io.audio.save.path}" />
+        <constructor-arg name="isCompletePath" value="false" />
+        <constructor-arg name="bitsPerSample" value="16" />
+        <constructor-arg name="isSigned" value="true" />
+        <constructor-arg name="captureUtts" value="false" />
+    </bean>
+    
+    <!-- cepstra until dct -->
+    <bean id="cepstraWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+        <constructor-arg name="outputDirectory"  value="${frontend.save.cepstra.path}"/>
+        <constructor-arg name="format" value="ascii"/>
+        <constructor-arg name="extension" value="mfc"/>
+    </bean>
+    
+    <bean id="spectraWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+        <constructor-arg name="outputDirectory"  value="${frontend.save.spectra.path}"/>
+        <constructor-arg name="format" value="binary"/>
+        <constructor-arg name="extension" value="mfc"/>
+    </bean>
 
-    <camel:route>
-      <camel:from uri="file:src/data?noop=true"/>
-      <camel:choice>
-        <camel:when>
-          <camel:xpath>/person/city = 'London'</camel:xpath>
-          <camel:log message="UK message"/>
-          <camel:to uri="file:target/messages/uk"/>
-        </camel:when>
-        <camel:otherwise>
-          <camel:log message="Other message"/>
-          <camel:to uri="file:target/messages/others"/>
-        </camel:otherwise>
-      </camel:choice>
-    </camel:route>
-  </camel:camelContext>
+    <bean id="deltaWriterBean" class="soa.speech.recogniser.frontend.process.FeatureFileWriter">
+        <constructor-arg name="outputDirectory"  value="${frontend.save.delta.path}"/>
+        <constructor-arg name="format" value="ascii"/>
+        <constructor-arg name="extension" value="mfc"/>
+    </bean>
 
+    <!-- frontend beans -->
+    <bean id="speechMarkerSOABean" class="edu.cmu.sphinx.frontend.endpoint.SpeechMarkerSOA">
+        <constructor-arg name="startSpeechTime" value="200" />
+        <constructor-arg name="endSilenceTime" value="500" />
+        <constructor-arg name="speechLeader" value="50" />
+        <constructor-arg name="speechLeaderFrames" value="30" />
+        <constructor-arg name="speechTrailer" value="50" />
+        <constructor-arg name="endSilenceDecay" value="15.0" />
+    </bean>
+
+    <bean id="nonSpeechDataFilterBean" class="edu.cmu.sphinx.frontend.endpoint.NonSpeechDataFilter " />
+
+    <bean id="preemphasizerBean" class="edu.cmu.sphinx.frontend.filter.Preemphasizer">
+        <constructor-arg name="preemphasisFactor" value="0.97" />
+    </bean>
+
+    <bean id="raisedCosineWindowerBean" class="edu.cmu.sphinx.frontend.window.RaisedCosineWindower">
+        <constructor-arg name="alpha" value="0.46d" />
+        <constructor-arg name="windowSizeInMs" value="25.625f" />
+        <constructor-arg name="windowShiftInMs" value="10.0f" />
+    </bean>
+
+    <bean id="discreteFourierTransformBean" class="edu.cmu.sphinx.frontend.transform.DiscreteFourierTransform">
+        <constructor-arg name="numberFftPoints" value="-1" />
+        <constructor-arg name="invert" value="false" />
+    </bean>
+
+    <bean id="melFrequencyFilterBankBean" class="edu.cmu.sphinx.frontend.frequencywarp.MelFrequencyFilterBank">
+        <constructor-arg name="minFreq" value="200" />
+        <constructor-arg name="maxFreq" value="3500" />
+        <constructor-arg name="numberFilters" value="31" />
+    </bean>
+
+    <bean id="discreteCosineTransformBean" class="edu.cmu.sphinx.frontend.transform.DiscreteCosineTransform">
+        <constructor-arg name="cepstrumSize" value="13" />
+        <constructor-arg name="numberMelFilters" value="40" />
+    </bean>
+
+    <bean id="liveCMNBean" class="edu.cmu.sphinx.frontend.feature.LiveCMN">
+        <constructor-arg name="initialMean" value="12.0" />
+        <constructor-arg name="cmnWindow" value="100" />
+        <constructor-arg name="cmnShiftWindow" value="160" />
+    </bean>
+
+    <bean id="featureDumperBean" class="edu.cmu.sphinx.frontend.util.DataDumper">
+        <constructor-arg name="enable" value="true" />
+        <constructor-arg name="format" value="0.00000E00;-0.00000E00" />
+        <constructor-arg name="outputSignals" value="true" />
+    </bean>
+
+    <bean id="frontendDataLoadBalancer" class="soa.speech.recogniser.frontend.process.FrontendDataLoadBalancer" />
+
+    <camel:camelContext id="mfccCamelContext" xmlns="http://camel.apache.org/schema/spring" shutdownRoute="Defer">
+
+        <route id="frontend-input">
+            <from uri="amq:queue:input.file.stream" />
+<!--             <bean ref="wavWriterBean" method="writeData(${body}, ${header.CamelFileName})" /> -->
+            <bean ref="preemphasizerBean" method="getData" />
+            <to uri="windower:raisedCosine" />
+        </route>
+
+        <route id="frontend-window">
+            <from uri="windower:raisedCosine" />
+            <bean ref="discreteFourierTransformBean" method="getData" />
+            <bean ref="melFrequencyFilterBankBean" method="getData(${body})" />
+            <bean ref="discreteCosineTransformBean" method="getData" />
+            <bean ref="liveCMNBean" method="getData" />
+            <to uri="deltafeature:delta" />
+        </route>
+
+        <route id="frontendDelta">
+            <from uri="deltafeature:delta" />
+<!--             <bean ref="deltaWriterBean" method="storeFeature(${body}, ${header.CamelFileName})" /> -->
+            <bean ref="featureDumperBean" method="dumpData" />
+            <to uri="seda:dataType" />
+        </route>
+
+        <route id="datatype">
+            <from uri="seda:dataType" />
+            <loadBalance ref="frontendDataLoadBalancer">
+                <to uri="seda:block" />
+                <to uri="seda:block" />
+            </loadBalance>
+        </route>
+
+        <route id="block">
+            <from uri="seda:block" />
+            <stop />
+        </route>
+
+    </camel:camelContext>
 </beans>
