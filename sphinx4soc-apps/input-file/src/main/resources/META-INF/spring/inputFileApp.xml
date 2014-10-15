@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:camel="http://camel.apache.org/schema/spring"
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:context="http://www.springframework.org/schema/context" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:camel="http://camel.apache.org/schema/spring"
     xsi:schemaLocation="
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <context:property-placeholder location="classpath:/META-INF/application.properties" />
 
     <!-- bean configuration -->
     <bean id="streamDataSourceBean" class="edu.cmu.sphinx.frontend.util.StreamDataSource" init-method="initialize">
@@ -26,11 +30,12 @@
     </bean>
 
     <!-- camel elements -->
-    <bean id="streamRawAudioDynamicRouter" class="soa.speech.recogniser.io.process.StreamRawAudioDynamicRouter">
-        <constructor-arg name="sequence" value="amq:queue:input.file.stream?destination.consumer.exclusive=true,bean:streamDataSourceBean?method=getData" />
+    <bean id="streamRawAudioDynamicRouter" class="soa.speech.io.process.StreamRawAudioDynamicRouter">
+        <constructor-arg name="sequence"
+            value="${dynamicRouter.out},bean:streamDataSourceBean?method=getData" />
     </bean>
 
-    <bean id="streamRawAudioProcessor" class="soa.speech.recogniser.io.process.StreamRawAudioProcessor">
+    <bean id="streamRawAudioProcessor" class="soa.speech.io.process.StreamRawAudioProcessor">
         <constructor-arg name="streamDataSourceBean" ref="streamDataSourceBean" />
     </bean>
 
@@ -45,25 +50,23 @@
     </bean>
 
     <camelContext shutdownRoute="Defer" id="fileInputCamelContext" xmlns="http://camel.apache.org/schema/spring">
-        <route customId="true" id="startApplicationRoute">
-            <from uri="timer://pollNextFile?repeatCount=1" />
-            <to uri="direct:readNext" />
-            <log message="File poller started." loggingLevel="INFO" />
-            <stop />
-        </route>
-        <route shutdownRoute="Defer" customId="true" id="prepareFileRoute">
-            <from uri="direct:readNext" />
-            <pollEnrich uri="file:ioTest/input?recursive=true&amp;maxMessagesPerPoll=1&amp;move=processed" />
+
+        <propertyPlaceholder id="appProperties" location="classpath:/META-INF/application.properties" />
+    
+        <route id="prepareFileRoute" shutdownRoute="Defer" customId="true">
+            <from uri="{{input.read.next}}" />
+            <pollEnrich uri="{{file.poller.endpoint}}" />
             <convertBodyTo type="java.io.InputStream" />
             <process ref="streamRawAudioProcessor" />
             <to uri="direct:read" />
         </route>
-        <route customId="true" id="streamFileRoute">
+
+        <route customId="true" id="streamFileRoute"  shutdownRoute="Defer">
             <from uri="direct:read" />
-            <dynamicRouter>
-                <method ref="streamRawAudioDynamicRouter" method="route"></method>
+            <dynamicRouter id="streamAudioFile">
+                <method ref="streamRawAudioDynamicRouter" method="route" />
             </dynamicRouter>
-            <stop />
         </route>
+
     </camelContext>
 </beans>

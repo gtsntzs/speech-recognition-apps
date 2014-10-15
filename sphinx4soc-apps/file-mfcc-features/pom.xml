@@ -7,13 +7,13 @@
   <parent>
     <groupId>soa.speech.recogniser</groupId>
     <artifactId>sphinx4soc-apps</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
 
   <groupId>soa.speech.recogniser.apps</groupId>
   <artifactId>file-mfcc-features</artifactId>
   <packaging>bundle</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
 
   <name>File :: Mfcc :: Features</name>
   <description>

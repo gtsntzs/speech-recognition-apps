@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<!--     <parent> -->
-<!--         <artifactId>sphinx4soc-apps</artifactId> -->
-<!--         <groupId>soa.speech.recogniser</groupId> -->
-<!--         <version>1.0.2-SNAPSHOT</version> -->
-<!--     </parent> -->
+    <parent>
+        <artifactId>sphinx4soc-apps</artifactId>
+        <groupId>soa.speech.recogniser</groupId>
+        <version>1.0.2-SNAPSHOT</version>
+    </parent>
 
     <groupId>soa.speech.recogniser.app</groupId>
-    <artifactId>feature-mfcc</artifactId>
+    <artifactId>decoder-default</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.3</version>
+    <version>1.0.0</version>
 
-    <name>Sphinx4soc Feature Mfcc App</name>
+    <name>Sphinx4soc decoder-default App</name>
 
     <description>description</description>
 
@@ -29,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.7</java.version>
-        <applicationContextUri>META-INF/*.xml;META-INF/spring/*.xml</applicationContextUri>
+        <applicationContextUri>META-INF/spring/decoderDefaultAppContext.xml</applicationContextUri>
         <!-- dependencies properties -->
         <sphinx4soc.version>1.0.4</sphinx4soc.version>
         <commons-io.version>2.4</commons-io.version>
@@ -69,6 +69,11 @@
         <dependency>
             <groupId>soa.speech.recogniser</groupId>
             <artifactId>sphinx4soc-lib</artifactId>
+            <version>${sphinx4soc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>soa.speech.recogniser.models</groupId>
+            <artifactId>model-default</artifactId>
             <version>${sphinx4soc.version}</version>
         </dependency>
 
@@ -115,7 +120,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -165,17 +169,14 @@
                 <artifactId>fabric8-maven-plugin</artifactId>
                 <version>${fabric8.maven.version}</version>
                 <configuration>
-                    <profile>sphinx4soc-feature-mfcc</profile>
+                    <profile>sphinx4soc-decoder-default</profile>
                     <parentProfiles>feature-camel</parentProfiles>
                     <features>camel-amq</features>
-                    <bundles>
-                        mvn:commons-io/commons-io/${commons-io.version}
+                    <bundles>mvn:commons-io/commons-io/${commons-io.version}
                         mvn:joda-time/joda-time/${joda-time.version}
                         mvn:edu.cmu.sphinx/cmu-sphinx4soc/${sphinx4soc.version}
                         mvn:soa.speech.recogniser/sphinx4soc-lib/${sphinx4soc.version}
-                        mvn:soa.speech.recogniser.components/sphinx4soc-deltafeature/${sphinx4soc.version}
-                        mvn:soa.speech.recogniser.components/sphinx4soc-windower/${sphinx4soc.version}
-                    </bundles>
+                        mvn:soa.speech.recogniser.models/model-default/${sphinx4soc.version}</bundles>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="15871" started-at="2014-10-14T15:33:20Z" finished-at="2014-10-14T15:33:36Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="15871" started-at="2014-10-14T15:33:20Z" finished-at="2014-10-14T15:33:36Z">
+      <class name="soa.speech.recogniser.app.InputFileTest">
+        <test-method status="PASS" signature="springTestContextBeforeTestClass()[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="springTestContextBeforeTestClass" is-config="true" duration-ms="6" started-at="2014-10-14T17:33:20Z" finished-at="2014-10-14T17:33:20Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- springTestContextBeforeTestClass -->
+        <test-method status="PASS" signature="springTestContextPrepareTestInstance()[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="springTestContextPrepareTestInstance" is-config="true" duration-ms="5834" started-at="2014-10-14T17:33:20Z" depends-on-methods="org.springframework.test.context.testng.AbstractTestNGSpringContextTests.springTestContextBeforeTestClass" finished-at="2014-10-14T17:33:26Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- springTestContextPrepareTestInstance -->
+        <test-method status="PASS" signature="springTestContextBeforeTestMethod(java.lang.reflect.Method)[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="springTestContextBeforeTestMethod" is-config="true" duration-ms="1" started-at="2014-10-14T17:33:26Z" finished-at="2014-10-14T17:33:26Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void soa.speech.recogniser.app.InputFileTest.testInboundRoute() throws java.lang.InterruptedException,java.io.IOException,javax.xml.xpath.XPathExpressionException]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- springTestContextBeforeTestMethod -->
+        <test-method status="PASS" signature="testInboundRoute()[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="testInboundRoute" duration-ms="10007" started-at="2014-10-14T17:33:26Z" finished-at="2014-10-14T17:33:36Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testInboundRoute -->
+        <test-method status="PASS" signature="springTestContextAfterTestMethod(java.lang.reflect.Method)[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="springTestContextAfterTestMethod" is-config="true" duration-ms="4" started-at="2014-10-14T17:33:36Z" finished-at="2014-10-14T17:33:36Z">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[public void soa.speech.recogniser.app.InputFileTest.testInboundRoute() throws java.lang.InterruptedException,java.io.IOException,javax.xml.xpath.XPathExpressionException]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- springTestContextAfterTestMethod -->
+        <test-method status="PASS" signature="springTestContextAfterTestClass()[pri:0, instance:soa.speech.recogniser.app.InputFileTest@28479662]" name="springTestContextAfterTestClass" is-config="true" duration-ms="0" started-at="2014-10-14T17:33:36Z" finished-at="2014-10-14T17:33:36Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- springTestContextAfterTestClass -->
+      </class> <!-- soa.speech.recogniser.app.InputFileTest -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>

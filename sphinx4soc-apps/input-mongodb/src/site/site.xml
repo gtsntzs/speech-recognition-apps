@@ -10,7 +10,7 @@
 
   <bannerLeft>
     <!--         Reflow Maven Skin, but with "Reflow" highlighted -->
-    <name><![CDATA[<span class="color-highlight">Input MongoDB</span> App]]></name>
+    <name><![CDATA[<span class="color-highlight">Input File</span> App]]></name>
   </bannerLeft>
 
   <custom>
@@ -18,7 +18,7 @@
       <brand>
         <!-- Brand text in top-left part of the site -->
         <name><![CDATA[<span class="color-highlight">Back to </span>Main]]></name>
-        <href>http://gtsntzs.github.io/input-mongodb/</href>
+        <href>http://gtsntzs.github.io/input-file/</href>
       </brand>
 
       <pages>
@@ -32,7 +32,7 @@
 
   <body>
     <breadcrumbs>
-      <item name="Input :: Mongodb" href="/" />
+      <item name="Input :: File" href="/" />
     </breadcrumbs>
   </body>
 </project>

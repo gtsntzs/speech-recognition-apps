@@ -8,13 +8,13 @@
   <parent>
     <groupId>soa.speech.recogniser</groupId>
     <artifactId>sphinx4soc-apps</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.0.2-SNAPSHOT</version>
   </parent>
 
   <groupId>soa.speech.recogniser.apps</groupId>
   <artifactId>file-mfcc-recogniser</artifactId>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
 
   <name>File :: Recogniser</name>
   <description>
@@ -47,14 +47,14 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.7</java.version>
-    <sphinx4soc.version>${project.version}</sphinx4soc.version>
+    <sphinx4soc.version>1.0.3</sphinx4soc.version>
     <!-- testing properties -->
     <fabric8.maven.version>1.1.0.CR5</fabric8.maven.version>
     <spring.version>3.2.8.RELEASE</spring.version>
     <camel.version>2.12.0</camel.version>
     <felix.version>2.0.4</felix.version>
     <commons-io.version>2.4</commons-io.version>
-    <joda-time.version>2.3</joda-time.version>
+    <joda-time.version>2.4</joda-time.version>
     <!-- logging properties -->
     <log4j.version>1.2.17</log4j.version>
     <slf4j.version>1.7.6</slf4j.version>
@@ -85,12 +85,12 @@
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
+      <groupId>soa.speech.recogniser.components</groupId>
       <artifactId>sphinx4soc-deltafeature</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
+      <groupId>soa.speech.recogniser.components</groupId>
       <artifactId>sphinx4soc-windower</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
@@ -100,8 +100,8 @@
       <version>${sphinx4soc.version}</version>
     </dependency>
     <dependency>
-      <groupId>soa.speech.recogniser</groupId>
-      <artifactId>sphinx4-models</artifactId>
+      <groupId>soa.speech.recogniser.models</groupId>
+      <artifactId>model-default</artifactId>
       <version>${sphinx4soc.version}</version>
     </dependency>
 

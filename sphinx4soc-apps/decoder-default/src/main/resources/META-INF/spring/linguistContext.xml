@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+
+    <!--     
+        linguist Bean 
+        languageModelBean
+        grammarBean
+    -->
+
+    <bean id="unitManagerBean" class="edu.cmu.sphinx.linguist.acoustic.UnitManager" />
+
+    <bean id="logMathBean" class="edu.cmu.sphinx.util.LogMath">
+        <constructor-arg name="logBase" value="1.0001" />
+        <constructor-arg name="useAddTable" value="true" />
+    </bean>
+
+    <bean id="sphinx3LoaderBean" init-method="load" class="edu.cmu.sphinx.linguist.acoustic.tiedstate.Sphinx3Loader">
+        <constructor-arg name="location" value="bundle:/default/models/" />
+        <constructor-arg name="model" value="etc/WSJ_clean_13dCep_16k_40mel_130Hz_6800Hz.4000.mdef" />
+        <constructor-arg name="dataLocation" value="cd_continuous_8gau/" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+        <constructor-arg name="isBinary" value="true" />
+        <constructor-arg name="sparseForm" value="true" />
+        <constructor-arg name="vectorLength" value="39" />
+        <constructor-arg name="distFloor" value="0.0f" />
+        <constructor-arg name="mixtureWeightFloor" value="1e-7f" />
+        <constructor-arg name="varianceFloor" value="0.0001f" />
+        <constructor-arg name="useCDUnits" value="true" />
+    </bean>
+
+    <bean id="tiedStateAcousticModelBean" init-method="allocate" destroy-method="deallocate" class="edu.cmu.sphinx.linguist.acoustic.tiedstate.TiedStateAcousticModel">
+        <constructor-arg name="loader" ref="sphinx3LoaderBean" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+        <constructor-arg name="useComposites" value="true" />
+    </bean>
+
+    <util:list id="addendaUrlList">
+    </util:list>
+
+    <bean id="fastDictionaryBean" init-method="allocate" class="edu.cmu.sphinx.linguist.dictionary.FastDictionary">
+        <constructor-arg name="wordDictionaryFile" value="/default/models/dict/cmudict.0.6d" />
+        <constructor-arg name="fillerDictionaryFile" value="/default/models/dict/fillerdict" />
+        <!-- add extra dictionaries here -->
+        <constructor-arg name="addendaUrlList" ref="addendaUrlList" />
+        <constructor-arg name="addSilEndingPronunciation" value="true" />
+        <constructor-arg name="wordReplacement" value="&lt;sil&gt;" />
+        <constructor-arg name="allowMissingWords" value="true" />
+        <constructor-arg name="createMissingWords" value="true" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+    </bean>
+
+    <bean id="dictionaryBean" init-method="allocate" destroy-method="deallocate" class="edu.cmu.sphinx.linguist.dictionary.FullDictionary">
+        <constructor-arg name="wordDictionaryFile" value="/default/models/dict/cmudict.0.6d" />
+        <constructor-arg name="fillerDictionaryFile" value="/default/models/dict/fillerdict" />
+        <constructor-arg name="addendaUrlList" ref="addendaUrlList" />
+        <constructor-arg name="addSilEndingPronunciation" value="true" />
+        <constructor-arg name="wordReplacement" value="&lt;sil&gt;" />
+        <constructor-arg name="allowMissingWords" value="true" />
+        <constructor-arg name="createMissingWords" value="true" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+    </bean>
+
+    <bean id="grammarBean" class="edu.cmu.sphinx.jsgf.JSGFGrammar">
+        <constructor-arg name="location" value="/default/grammar" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+        <constructor-arg name="grammarName" value="hello" />
+        <constructor-arg name="showGrammar" value="true" />
+        <constructor-arg name="optimizeGrammar" value="true" />
+        <constructor-arg name="addSilenceWords" value="false" />
+        <constructor-arg name="addFillerWords" value="false" />
+        <constructor-arg name="dictionary" ref="dictionaryBean" />
+    </bean>
+
+    <bean id="flatLinguistBean" init-method="allocate" destroy-method="deallocate" class="edu.cmu.sphinx.linguist.flat.FlatLinguist">
+        <constructor-arg name="acousticModel" ref="tiedStateAcousticModelBean" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+        <constructor-arg name="grammar" ref="grammarBean" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+        <constructor-arg name="wordInsertionProbability" value="1E-36" />
+        <constructor-arg name="silenceInsertionProbability" value="1.0d" />
+        <constructor-arg name="fillerInsertionProbability" value="1.0d" />
+        <constructor-arg name="unitInsertionProbability" value="1.0d" />
+        <constructor-arg name="languageWeight" value="8.0f" />
+        <constructor-arg name="dumpGStates" value="false" />
+        <constructor-arg name="showCompilationProgress" value="false" />
+        <constructor-arg name="spreadWordProbabilitiesAcrossPronunciations" value="false" />
+        <constructor-arg name="addOutOfGrammarBranch" value="false" />
+        <constructor-arg name="outOfGrammarBranchProbability" value="1.0" />
+        <constructor-arg name="phoneInsertionProbability" value="1.0" />
+        <constructor-arg name="phoneLoopAcousticModel">
+            <null />
+        </constructor-arg>
+    </bean>
+
+    <bean id="languageModelBean" init-method="allocate" destroy-method="deallocate" class="edu.cmu.sphinx.linguist.language.ngram.large.LargeTrigramModel">
+        <constructor-arg name="format">
+            <null />
+        </constructor-arg>
+        <constructor-arg name="location" value="/default/trigram/tcb05cnp.Z.DMP" />
+        <constructor-arg name="ngramLogFile" value="false" />
+        <constructor-arg name="maxTrigramCacheSize" value="1000000" />
+        <constructor-arg name="maxBigramCacheSize" value="0" />
+        <constructor-arg name="clearCacheAfterUtterance" value="false" />
+        <constructor-arg name="maxDepth" value="3" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+        <constructor-arg name="dictionary" ref="dictionaryBean" />
+        <constructor-arg name="applyLanguageWeightAndWip" value="false" />
+        <constructor-arg name="languageWeight" value="1.0" />
+        <constructor-arg name="wip" value="1.0" />
+        <constructor-arg name="unigramWeight" value="0.5" />
+        <constructor-arg name="fullSmear" value="false" />
+    </bean>
+
+
+    <bean id="linguistBean" init-method="allocateSoA" destroy-method="deallocate" class="edu.cmu.sphinx.linguist.lextree.LexTreeLinguist">
+        <constructor-arg name="acousticModel" ref="tiedStateAcousticModelBean" />
+        <constructor-arg name="logMath" ref="logMathBean" />
+        <constructor-arg name="unitManager" ref="unitManagerBean" />
+        <constructor-arg name="languageModel" ref="languageModelBean" />
+        <constructor-arg name="dictionary" ref="dictionaryBean" />
+        <constructor-arg name="fullWordHistories" value="true" />
+        <constructor-arg name="wantUnigramSmear" value="true" />
+        <constructor-arg name="wordInsertionProbability" value="0.7d" />
+        <constructor-arg name="silenceInsertionProbability" value="0.1d" />
+        <constructor-arg name="fillerInsertionProbability" value="1.0d" />
+        <constructor-arg name="unitInsertionProbability" value="1.0d" />
+        <constructor-arg name="languageWeight" value="10.5f" />
+        <constructor-arg name="addFillerWords" value="false" />
+        <constructor-arg name="generateUnitStates" value="false" />
+        <constructor-arg name="unigramSmearWeight" value="1.0f" />
+        <constructor-arg name="maxArcCacheSize" value="0" />
+    </bean>
+
+</beans>

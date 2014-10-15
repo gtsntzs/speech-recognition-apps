@@ -4,7 +4,7 @@
 
   <groupId>soa.speech.recogniser</groupId>
   <artifactId>sphinx4soc-apps</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Sphinx4soc :: Aggregator</name>
@@ -17,6 +17,8 @@
     <module>file-mfcc-recogniser</module>
     <module>input-file</module>
     <module>feature-mfcc</module>
+    <module>decoder-default</module>
+    <module>input-mongodb</module>
   </modules>
 
   <!-- project info -->

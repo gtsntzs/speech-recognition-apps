@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:camel="http://camel.apache.org/schema/spring" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+    xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+       http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.5.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+
+    <context:property-placeholder location="classpath:/META-INF/application.properties" />
+
+    <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}">
+        <mongo:options connections-per-host="8" />
+        <!-- threads-allowed-to-block-for-connection-multiplier="4" -->
+        <!-- connect-timeout="1000" -->
+        <!-- max-wait-time="1500" -->
+        <!-- auto-connect-retry="true" -->
+        <!-- socket-keep-alive="true" -->
+        <!-- socket-timeout="1500" -->
+        <!-- slave-ok="true" -->
+        <!-- write-number="1" -->
+        <!-- write-timeout="0" -->
+        <!-- write-fsync="true" /> -->
+    </mongo:mongo>
+
+    <!-- MongoDB GridFS Speech Files -->
+    <mongo:db-factory id="mongoDbFactory" dbname="modeldb" mongo-ref="mongo" />
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+    </bean>
+
+    <mongo:mapping-converter id="converter" db-factory-ref="mongoDbFactory" />
+
+    <bean id="gridFsTemplate" class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+        <constructor-arg ref="mongoDbFactory" />
+        <constructor-arg ref="converter" />
+    </bean>
+
+    <bean id="experimentDao" class="soa.speech.persistence.mongodb.dao.ExperimentDao">
+        <property name="mongoTemplate" ref="mongoTemplate" />
+    </bean>
+
+    <bean id="experiment" class="soa.speech.lib.beans.Experiment">
+        <property name="name" value="mongo-input" />
+        <property name="version" value="1.0" />
+        <property name="corpus" value="LIMIT" />
+        <property name="numOfSamples" value="10" />
+    </bean>
+
+    <bean id="sampleIterator" class="soa.speech.persistence.mongodb.dao.LoadSamplesIterator">
+        <property name="gridFsTemplate" ref="gridFsTemplate" />
+        <property name="experiment" ref="experiment" />
+    </bean>
+
+    <bean id="sequenceInput" class="soa.speech.persistence.mongodb.dao.SequenceDaoImpl">
+        <property name="mongoTemplate" ref="mongoTemplate" />
+    </bean>
+
+    <bean id="ioResults" class="soa.speech.persistence.mongodb.dao.StoreSphinxResults">
+        <property name="sequenceDao" ref="sequenceInput" />
+        <property name="mongoTemplate" ref="mongoTemplate" />
+    </bean>
+
+
+    <!-- MONGO -->
+    <bean id="streamDataSourceBean" class="edu.cmu.sphinx.frontend.util.StreamDataSource" init-method="initialize">
+        <constructor-arg name="sampleRate" value="16000" />
+        <constructor-arg name="bytesPerRead" value="3200" />
+        <constructor-arg name="bitsPerSample" value="16" />
+        <constructor-arg name="bigEndian" value="true" />
+        <constructor-arg name="signedData" value="true" />
+    </bean>
+
+    <bean id="audioFileDataSourceBean" class="edu.cmu.sphinx.frontend.util.AudioFileDataSource">
+        <property name="bytesPerRead" value="3200" />
+    </bean>
+
+    <bean id="dataDumperBean" class="edu.cmu.sphinx.frontend.util.DataDumper">
+        <constructor-arg name="enable" value="true" />
+        <constructor-arg name="format" value="0.00000E00;-0.00000E00" />
+        <constructor-arg name="outputSignals" value="true" />
+    </bean>
+
+    <!-- camel elements -->
+    <bean id="streamRawAudioDynamicRouter" class="soa.speech.io.process.StreamRawAudioDynamicRouter">
+        <constructor-arg name="sequence" value="${io.out},bean:streamDataSourceBean?method=getData" />
+    </bean>
+
+    <bean id="streamRawAudioMongoProcessor" class="soa.speech.persistence.mongodb.camel.StreamRawAudioMongoProcessor">
+        <constructor-arg name="streamDataSourceBean" ref="streamDataSourceBean" />
+    </bean>
+
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <property name="brokerURL" value="tcp://localhost:61616" />
+        <property name="userName" value="admin" />
+        <property name="password" value="admin" />
+    </bean>
+
+    <bean id="shutdown" class="org.apache.camel.impl.DefaultShutdownStrategy">
+        <property name="timeout" value="3" />
+    </bean>
+
+    <camelContext shutdownRoute="Defer" id="fileInputCamelContext" xmlns="http://camel.apache.org/schema/spring">
+
+        <propertyPlaceholder id="appProperties" location="classpath:/META-INF/application.properties" />
+
+        <route id="prepareFileRoute" shutdownRoute="Defer" customId="true">
+            <from uri="{{io.next.file}}" />
+            <camel:setBody>
+                <camel:simple>bean:sampleIterator?method=next</camel:simple>
+            </camel:setBody>
+            <process ref="streamRawAudioMongoProcessor" />
+            <to uri="direct:read" />
+        </route>
+
+        <route customId="true" id="streamFileRoute">
+            <from uri="direct:read" />
+            <dynamicRouter id="streamAudioFile">
+                <method ref="streamRawAudioDynamicRouter" method="route" />
+            </dynamicRouter>
+        </route>
+
+        <route customId="true" id="dump">
+            <from uri="{{io.out}}" />
+            <camel:bean ref="dataDumperBean" method="getData" />
+        </route>
+
+    </camelContext>
+
+</beans>

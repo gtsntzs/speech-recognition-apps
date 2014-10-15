@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<!--     <parent> -->
-<!--         <artifactId>sphinx4soc-apps</artifactId> -->
-<!--         <groupId>soa.speech.recogniser</groupId> -->
-<!--         <version>1.0.2-SNAPSHOT</version> -->
-<!--     </parent> -->
+    <!-- <parent> -->
+    <!-- <artifactId>sphinx4soc-apps</artifactId> -->
+    <!-- <groupId>soa.speech.recogniser</groupId> -->
+    <!-- <version>1.0.2-SNAPSHOT</version> -->
+    <!-- </parent> -->
 
     <groupId>soa.speech.recogniser.app</groupId>
-    <artifactId>feature-mfcc</artifactId>
+    <artifactId>input-mongodb</artifactId>
     <packaging>bundle</packaging>
-    <version>1.0.3</version>
+    <version>1.0</version>
 
-    <name>Sphinx4soc Feature Mfcc App</name>
+    <name>Sphinx4soc input-mongodb App</name>
 
     <description>description</description>
 
@@ -31,9 +31,9 @@
         <java.version>1.7</java.version>
         <applicationContextUri>META-INF/*.xml;META-INF/spring/*.xml</applicationContextUri>
         <!-- dependencies properties -->
-        <sphinx4soc.version>1.0.4</sphinx4soc.version>
+        <sphinx4soc.version>1.0.5</sphinx4soc.version>
         <commons-io.version>2.4</commons-io.version>
-        <joda-time.version>2.4</joda-time.version>
+        <joda-time.version>2.3</joda-time.version>
         <fabric8.maven.version>1.1.0.CR5</fabric8.maven.version>
         <camel.version>2.13.2</camel.version>
         <felix.version>2.0.4</felix.version>
@@ -57,21 +57,22 @@
             <version>${sphinx4soc.version}</version>
         </dependency>
         <dependency>
-            <groupId>soa.speech.recogniser.components</groupId>
-            <artifactId>sphinx4soc-deltafeature</artifactId>
-            <version>${sphinx4soc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>soa.speech.recogniser.components</groupId>
-            <artifactId>sphinx4soc-windower</artifactId>
-            <version>${sphinx4soc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>soa.speech.recogniser</groupId>
+            <groupId>soa.speech</groupId>
             <artifactId>sphinx4soc-lib</artifactId>
             <version>${sphinx4soc.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>soa.speech.persistence</groupId>
+            <artifactId>persistence-mongodb</artifactId>
+            <version>${sphinx4soc.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-mongodb</artifactId>
+            <version>1.5.4.RELEASE</version>
+        </dependency>
         <!-- camel -->
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -85,21 +86,21 @@
         </dependency>
 
         <!-- logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
+        <!-- <dependency> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-api</artifactId> -->
+        <!-- <version>${slf4j.version}</version> -->
+        <!-- </dependency> -->
+        <!-- <dependency> -->
+        <!-- <groupId>org.slf4j</groupId> -->
+        <!-- <artifactId>slf4j-log4j12</artifactId> -->
+        <!-- <version>${slf4j.version}</version> -->
+        <!-- </dependency> -->
+        <!-- <dependency> -->
+        <!-- <groupId>log4j</groupId> -->
+        <!-- <artifactId>log4j</artifactId> -->
+        <!-- <version>${log4j.version}</version> -->
+        <!-- </dependency> -->
 
         <!-- testing -->
         <dependency>
@@ -147,6 +148,18 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
+                        <Import-Package>
+                            com.mongodb,
+                            org.aopalliance.aop,
+                            org.springframework.aop,
+                            org.springframework.aop.framework,
+                            org.springframework.data.domain,
+                            org.springframework.data.mongodb.config,
+                            org.springframework.data.mongodb.repository.support,
+                            org.springframework.data.repository,
+                            org.springframework.data.repository.core.support,
+                            *
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
@@ -165,16 +178,25 @@
                 <artifactId>fabric8-maven-plugin</artifactId>
                 <version>${fabric8.maven.version}</version>
                 <configuration>
-                    <profile>sphinx4soc-feature-mfcc</profile>
+                    <profile>sphinx4soc-io-input.mongodb</profile>
                     <parentProfiles>feature-camel</parentProfiles>
                     <features>camel-amq</features>
                     <bundles>
                         mvn:commons-io/commons-io/${commons-io.version}
-                        mvn:joda-time/joda-time/${joda-time.version}
+                        mvn:org.apache.tika/tika-core/1.6
+                        mvn:joda-time/joda-time/1.6.2
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-core/3.2.10.RELEASE_1
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-aop/3.2.10.RELEASE_1
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-beans/3.2.10.RELEASE_1
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-context/3.2.10.RELEASE_1
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-tx/3.2.10.RELEASE_1
+                        mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.spring-expression/3.2.10.RELEASE_1
+                        mvn:org.mongodb/mongo-java-driver/2.12.1
+                        mvn:org.springframework.data/spring-data-commons/1.8.4.RELEASE
+                        mvn:org.springframework.data/spring-data-mongodb/1.5.4.RELEASE
                         mvn:edu.cmu.sphinx/cmu-sphinx4soc/${sphinx4soc.version}
-                        mvn:soa.speech.recogniser/sphinx4soc-lib/${sphinx4soc.version}
-                        mvn:soa.speech.recogniser.components/sphinx4soc-deltafeature/${sphinx4soc.version}
-                        mvn:soa.speech.recogniser.components/sphinx4soc-windower/${sphinx4soc.version}
+                        mvn:soa.speech/sphinx4soc-lib/${sphinx4soc.version}
+                        mvn:soa.speech.persistence/persistence-mongodb/${sphinx4soc.version}
                     </bundles>
                 </configuration>
             </plugin>
