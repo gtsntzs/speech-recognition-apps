@@ -24,6 +24,16 @@
         </license>
     </licenses>
 
+  <url>${site.url}/${project.artifactId}</url>
+  <distributionManagement>
+    <site>
+      <name>Deployment through GitHub's site deployment plugin</name>
+      <id>${site.deploy.id}</id>
+      <url>${site.deploy.url}${project.artifactId}</url>
+    </site>
+  </distributionManagement>
+
+
     <properties>
         <!-- project properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
