@@ -10,7 +10,7 @@
 
   <bannerLeft>
     <!--         Reflow Maven Skin, but with "Reflow" highlighted -->
-    <name><![CDATA[<span class="color-highlight">Input File</span> App]]></name>
+    <name><![CDATA[<span class="color-highlight">Feature MFCC</span> App]]></name>
   </bannerLeft>
 
   <custom>
@@ -18,21 +18,21 @@
       <brand>
         <!-- Brand text in top-left part of the site -->
         <name><![CDATA[<span class="color-highlight">Back to </span>Main]]></name>
-        <href>http://gtsntzs.github.io/input-mongodb/</href>
+        <href>http://gtsntzs.github.io/speech-recognition-apps</href>
       </brand>
 
       <pages>
-        <index project="input-mongodb" combine.self="override">
+        <index project="feature-mfcc" combine.self="override">
           <!-- no ToC on the index page -->
-          <toc>true</toc>
+          <toc>false</toc>
         </index>
       </pages>
     </reflowSkin>
   </custom>
 
   <body>
-<!--     <breadcrumbs>
-      <item name="Input :: Mongodb" href="/" />
-    </breadcrumbs> -->
+    <breadcrumbs>
+      <item name="Feature::MFCC" href="/" />
+    </breadcrumbs>
   </body>
 </project>
