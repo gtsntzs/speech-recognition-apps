@@ -8,9 +8,10 @@
        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.5.xsd
        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-
     <context:property-placeholder location="classpath:/META-INF/application.properties" />
 
+    <!-- mongoDB beans -->
+    
     <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}">
         <mongo:options connections-per-host="8" />
         <!-- threads-allowed-to-block-for-connection-multiplier="4" -->
@@ -25,8 +26,7 @@
         <!-- write-fsync="true" /> -->
     </mongo:mongo>
 
-    <!-- MongoDB GridFS Speech Files -->
-    <mongo:db-factory id="mongoDbFactory" dbname="modeldb" mongo-ref="mongo" />
+    <mongo:db-factory id="mongoDbFactory" dbname="${speech.fs.database.name}" mongo-ref="mongo" />
 
     <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
         <constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
@@ -47,12 +47,12 @@
         <property name="name" value="mongo-input" />
         <property name="version" value="1.0" />
         <property name="corpus" value="LIMIT" />
-        <property name="numOfSamples" value="10" />
+        <property name="numOfSamples" value="3" />
     </bean>
 
-    <bean id="sampleIterator" class="soa.speech.persistence.mongodb.dao.LoadSamplesIterator">
-        <property name="gridFsTemplate" ref="gridFsTemplate" />
-        <property name="experiment" ref="experiment" />
+    <bean id="sampleIterator" class="soa.speech.persistence.mongodb.dao.LoadSamplesIterator" init-method="init">
+        <constructor-arg name="gridFsTemplate" ref="gridFsTemplate" />
+        <constructor-arg name="experiment" ref="experiment" />
     </bean>
 
     <bean id="sequenceInput" class="soa.speech.persistence.mongodb.dao.SequenceDaoImpl">
@@ -64,8 +64,7 @@
         <property name="mongoTemplate" ref="mongoTemplate" />
     </bean>
 
-
-    <!-- MONGO -->
+    <!-- Sphinx Beans -->
     <bean id="streamDataSourceBean" class="edu.cmu.sphinx.frontend.util.StreamDataSource" init-method="initialize">
         <constructor-arg name="sampleRate" value="16000" />
         <constructor-arg name="bytesPerRead" value="3200" />
@@ -84,19 +83,20 @@
         <constructor-arg name="outputSignals" value="true" />
     </bean>
 
-    <!-- camel elements -->
+    <!-- Broker  -->
+    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
+        <property name="brokerURL" value="${broker.url}" />
+        <property name="userName" value="${broker.username}" />
+        <property name="password" value="${broker.password}" />
+    </bean>
+
+    <!-- Camel Beans -->
     <bean id="streamRawAudioDynamicRouter" class="soa.speech.io.process.StreamRawAudioDynamicRouter">
-        <constructor-arg name="sequence" value="${io.out},bean:streamDataSourceBean?method=getData" />
+        <constructor-arg name="sequence" value="${out.endpoint},bean:streamDataSourceBean?method=getData" />
     </bean>
 
     <bean id="streamRawAudioMongoProcessor" class="soa.speech.persistence.mongodb.camel.StreamRawAudioMongoProcessor">
         <constructor-arg name="streamDataSourceBean" ref="streamDataSourceBean" />
-    </bean>
-
-    <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
-        <property name="brokerURL" value="tcp://localhost:61616" />
-        <property name="userName" value="admin" />
-        <property name="password" value="admin" />
     </bean>
 
     <bean id="shutdown" class="org.apache.camel.impl.DefaultShutdownStrategy">
@@ -108,7 +108,7 @@
         <propertyPlaceholder id="appProperties" location="classpath:/META-INF/application.properties" />
 
         <route id="prepareFileRoute" shutdownRoute="Defer" customId="true">
-            <from uri="{{io.next.file}}" />
+            <from uri="{{in.next.stream}}" />
             <camel:setBody>
                 <camel:simple>bean:sampleIterator?method=next</camel:simple>
             </camel:setBody>
@@ -124,7 +124,7 @@
         </route>
 
         <route customId="true" id="dump">
-            <from uri="{{io.out}}" />
+            <from uri="{{out.endpoint}}" />
             <camel:bean ref="dataDumperBean" method="getData" />
         </route>
 

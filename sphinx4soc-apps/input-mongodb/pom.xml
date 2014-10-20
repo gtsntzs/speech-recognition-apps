@@ -41,7 +41,7 @@
         <java.version>1.7</java.version>
         <applicationContextUri>META-INF/*.xml;META-INF/spring/*.xml</applicationContextUri>
         <!-- dependencies properties -->
-        <sphinx4soc.version>1.0.5</sphinx4soc.version>
+        <sphinx4soc.version>1.0.6-SNAPSHOT</sphinx4soc.version>
         <commons-io.version>2.4</commons-io.version>
         <joda-time.version>2.3</joda-time.version>
         <fabric8.maven.version>1.1.0.CR5</fabric8.maven.version>
@@ -113,6 +113,14 @@
         <!-- </dependency> -->
 
         <!-- testing -->
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-testng</artifactId>
+            <version>${camel.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-spring</artifactId>
