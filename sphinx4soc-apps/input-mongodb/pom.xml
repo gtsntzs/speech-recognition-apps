@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-      <artifactId>sphinx4soc-apps</artifactId>
-      <groupId>soa.speech.recogniser</groupId>
-      <version>1.0.2-SNAPSHOT</version>
+        <artifactId>sphinx4soc-apps</artifactId>
+        <groupId>soa.speech.recogniser</groupId>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
 
     <groupId>soa.speech.recogniser.app</groupId>
@@ -24,14 +24,14 @@
         </license>
     </licenses>
 
-  <url>${site.url}/${project.artifactId}</url>
-  <distributionManagement>
-    <site>
-      <name>Deployment through GitHub's site deployment plugin</name>
-      <id>${site.deploy.id}</id>
-      <url>${site.deploy.url}${project.artifactId}</url>
-    </site>
-  </distributionManagement>
+    <url>${site.url}/${project.artifactId}</url>
+    <distributionManagement>
+        <site>
+            <name>Deployment through GitHub's site deployment plugin</name>
+            <id>${site.deploy.id}</id>
+            <url>${site.deploy.url}${project.artifactId}</url>
+        </site>
+    </distributionManagement>
 
 
     <properties>
@@ -95,25 +95,7 @@
             <version>${camel.version}</version>
         </dependency>
 
-        <!-- logging -->
-        <!-- <dependency> -->
-        <!-- <groupId>org.slf4j</groupId> -->
-        <!-- <artifactId>slf4j-api</artifactId> -->
-        <!-- <version>${slf4j.version}</version> -->
-        <!-- </dependency> -->
-        <!-- <dependency> -->
-        <!-- <groupId>org.slf4j</groupId> -->
-        <!-- <artifactId>slf4j-log4j12</artifactId> -->
-        <!-- <version>${slf4j.version}</version> -->
-        <!-- </dependency> -->
-        <!-- <dependency> -->
-        <!-- <groupId>log4j</groupId> -->
-        <!-- <artifactId>log4j</artifactId> -->
-        <!-- <version>${log4j.version}</version> -->
-        <!-- </dependency> -->
-
         <!-- testing -->
-
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-testng</artifactId>
@@ -125,6 +107,13 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-spring</artifactId>
             <version>${camel.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-camel</artifactId>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

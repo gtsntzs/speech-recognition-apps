@@ -11,7 +11,7 @@
     <context:property-placeholder location="classpath:/META-INF/application.properties" />
 
     <!-- mongoDB beans -->
-    
+
     <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}">
         <mongo:options connections-per-host="8" />
         <!-- threads-allowed-to-block-for-connection-multiplier="4" -->
@@ -83,7 +83,7 @@
         <constructor-arg name="outputSignals" value="true" />
     </bean>
 
-    <!-- Broker  -->
+    <!-- Broker -->
     <bean id="activemq" class="org.apache.activemq.camel.component.ActiveMQComponent">
         <property name="brokerURL" value="${broker.url}" />
         <property name="userName" value="${broker.username}" />
@@ -104,7 +104,6 @@
     </bean>
 
     <camelContext shutdownRoute="Defer" id="fileInputCamelContext" xmlns="http://camel.apache.org/schema/spring">
-
         <propertyPlaceholder id="appProperties" location="classpath:/META-INF/application.properties" />
 
         <route id="prepareFileRoute" shutdownRoute="Defer" customId="true">
@@ -122,12 +121,6 @@
                 <method ref="streamRawAudioDynamicRouter" method="route" />
             </dynamicRouter>
         </route>
-
-        <route customId="true" id="dump">
-            <from uri="{{out.endpoint}}" />
-            <camel:bean ref="dataDumperBean" method="getData" />
-        </route>
-
     </camelContext>
 
 </beans>
