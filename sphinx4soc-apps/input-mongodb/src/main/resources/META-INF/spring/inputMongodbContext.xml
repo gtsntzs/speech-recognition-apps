@@ -11,7 +11,6 @@
     <context:property-placeholder location="classpath:/META-INF/application.properties" />
 
     <!-- mongoDB beans -->
-
     <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}">
         <mongo:options connections-per-host="8" />
         <!-- threads-allowed-to-block-for-connection-multiplier="4" -->
@@ -46,8 +45,8 @@
     <bean id="experiment" class="soa.speech.lib.beans.Experiment">
         <property name="name" value="mongo-input" />
         <property name="version" value="1.0" />
-        <property name="corpus" value="LIMIT" />
-        <property name="numOfSamples" value="3" />
+        <property name="corpus" value="ALL" />
+<!--         <property name="numOfSamples" value="3" /> -->
     </bean>
 
     <bean id="sampleIterator" class="soa.speech.persistence.mongodb.dao.LoadSamplesIterator" init-method="init">
@@ -111,6 +110,7 @@
             <camel:setBody>
                 <camel:simple>bean:sampleIterator?method=next</camel:simple>
             </camel:setBody>
+            <camel:log message="${headers.CamelFileName}"/>
             <process ref="streamRawAudioMongoProcessor" />
             <to uri="direct:read" />
         </route>

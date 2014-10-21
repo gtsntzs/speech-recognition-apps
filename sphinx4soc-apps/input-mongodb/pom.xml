@@ -51,6 +51,7 @@
         <log4j.version>1.2.17</log4j.version>
         <slf4j.version>1.7.7</slf4j.version>
         <!-- testing properties -->
+        <activemq-camel.version>5.10.0</activemq-camel.version>
         <mockito.version>1.9.5</mockito.version>
         <testng.version>6.8.8</testng.version>
         <!-- plugin properties -->
@@ -113,7 +114,7 @@
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-camel</artifactId>
-            <version>5.10.0</version>
+            <version>${activemq-camel.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -123,7 +124,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
