@@ -19,7 +19,7 @@ import org.testng.annotations.Test;
 import soa.speech.persistence.mongodb.files.StoreSpeechDatabase;
 
 @ContextConfiguration("file:src/main/resources/META-INF/spring/inputMongodbContext.xml")
-public class InputMongodbTest extends AbstractTestNGSpringContextTests {
+public class InputMongodbIT extends AbstractTestNGSpringContextTests {
  
     @Autowired
     protected CamelContext camelContext;
