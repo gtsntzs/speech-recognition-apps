@@ -46,7 +46,7 @@
         <property name="name" value="mongo-input" />
         <property name="version" value="1.0" />
         <property name="corpus" value="ALL" />
-<!--         <property name="numOfSamples" value="3" /> -->
+        <!-- <property name="numOfSamples" value="3" /> -->
     </bean>
 
     <bean id="sampleIterator" class="soa.speech.persistence.mongodb.dao.LoadSamplesIterator" init-method="init">
@@ -103,22 +103,24 @@
     </bean>
 
     <camelContext shutdownRoute="Defer" id="fileInputCamelContext" xmlns="http://camel.apache.org/schema/spring">
-        <propertyPlaceholder id="appProperties" location="classpath:/META-INF/application.properties" />
-
-        <route id="prepareFileRoute" shutdownRoute="Defer" customId="true">
+        
+        <propertyPlaceholder location="classpath:/META-INF/application.properties" id="appProperties" />
+        
+        <route shutdownRoute="Defer" customId="true" id="prepareStreamRoute">
             <from uri="{{in.next.stream}}" />
-            <camel:setBody>
-                <camel:simple>bean:sampleIterator?method=next</camel:simple>
-            </camel:setBody>
-            <camel:log message="${headers.CamelFileName}"/>
-            <process ref="streamRawAudioMongoProcessor" />
+            <setBody>
+                <simple>bean:sampleIterator?method=next</simple>
+            </setBody>
+            <process ref="streamRawAudioMongoProcessor">
+                <description>&lt;log message="${headers.CamelFileName}"/&gt;</description>
+            </process>
             <to uri="direct:read" />
         </route>
-
+        
         <route customId="true" id="streamFileRoute">
             <from uri="direct:read" />
-            <dynamicRouter id="streamAudioFile">
-                <method ref="streamRawAudioDynamicRouter" method="route" />
+            <dynamicRouter customId="true" id="streamAudioFile">
+                <method ref="streamRawAudioDynamicRouter" method="route"></method>
             </dynamicRouter>
         </route>
     </camelContext>

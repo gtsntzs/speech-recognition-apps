@@ -1,7 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:mongo="http://www.springframework.org/schema/data/mongo"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+                           http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.5.xsd
+                           http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <context:property-placeholder location="classpath:/META-INF/application.properties" />
+
+    <!-- mongoDB beans -->
+    <mongo:mongo id="mongo" host="${mongo.host}" port="${mongo.port}">
+        <mongo:options connections-per-host="8" />
+        <!-- threads-allowed-to-block-for-connection-multiplier="4" -->
+        <!-- connect-timeout="1000" -->
+        <!-- max-wait-time="1500" -->
+        <!-- auto-connect-retry="true" -->
+        <!-- socket-keep-alive="true" -->
+        <!-- socket-timeout="1500" -->
+        <!-- slave-ok="true" -->
+        <!-- write-number="1" -->
+        <!-- write-timeout="0" -->
+        <!-- write-fsync="true" /> -->
+    </mongo:mongo>
+
+    <mongo:db-factory id="mongoDbFactory" dbname="${speech.fs.database.name}" mongo-ref="mongo" />
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory" />
+    </bean>
+
+    <mongo:mapping-converter id="converter" db-factory-ref="mongoDbFactory" />
+
+    <bean id="gridFsTemplate" class="org.springframework.data.mongodb.gridfs.GridFsTemplate">
+        <constructor-arg ref="mongoDbFactory" />
+        <constructor-arg ref="converter" />
+    </bean>
 
     <!-- Persist beans -->
     <bean id="wavWriterBean" class="edu.cmu.sphinx.frontend.util.WavWriter" init-method="create">
@@ -85,8 +117,10 @@
 
     <camel:camelContext id="mfccCamelContext" xmlns="http://camel.apache.org/schema/spring" shutdownRoute="Defer">
 
+        <propertyPlaceholder location="classpath:/META-INF/application.properties" id="appProperties" />
+
         <route id="frontend-input">
-            <from uri="amq:queue:input.file.stream" />
+            <from uri="{{in.endpoint}}" />
             <!-- <bean ref="wavWriterBean" method="writeData(${body}, ${header.CamelFileName})" /> -->
             <bean ref="preemphasizerBean" method="getData" />
             <to uri="windower:raisedCosine" />
@@ -112,7 +146,7 @@
             <from uri="seda:dataType" />
             <loadBalance ref="frontendDataLoadBalancer">
                 <to uri="seda:block" />
-                <to uri="amq:queue:read.next.file" />
+                <to uri="{{read.next.stream}}" />
             </loadBalance>
         </route>
 
